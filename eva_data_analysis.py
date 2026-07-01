@@ -11,7 +11,8 @@ def read_preprocess(input_filename: str) -> pd.DataFrame:
     """
     df = pd.read_json(input_filename, convert_dates=['date'], encoding='ascii')
     df['eva'] = df['eva'].astype(float)
-    df.dropna(axis=0, subset=['duration', 'date'], inplace=True)  # drop rows where either duration or date is null
+    # drop rows where either duration or date is null
+    df.dropna(axis=0, subset=['duration', 'date'], inplace=True)
     return df
 
 
@@ -21,9 +22,12 @@ def create_crew_duration_subset(df: pd.DataFrame) -> pd.DataFrame:
     :param df: eva dataframe including rows with multiple crews.
     :return:
     """
-    crew_duration_df = df.loc[:, ['crew', 'duration']] # subset of data with only columns crew and duration
-    crew_duration_df.crew = crew_duration_df.crew.str.split(';').apply(lambda x: [i for i in x if i.strip()]) # anonymous function that takes a list of crew members and returns a list with whitespace stripped from names and empry stirngs removed
-    crew_duration_df = crew_duration_df.explode('crew') # expand entries in a list-like column across multiple rows, making each element in the list a separate row and keeping/replicating values in other columns
+    # subset of data with only columns crew and duration
+    crew_duration_df = df.loc[:, ['crew', 'duration']]
+    # anonymous function that takes a list of crew members and returns a list with whitespace stripped from names and empry stirngs removed
+    crew_duration_df.crew = crew_duration_df.crew.str.split(';').apply(lambda x: [i for i in x if i.strip()])
+    # expand entries in a list-like column across multiple rows, making each element in the list a separate row and keeping/replicating values in other columns
+    crew_duration_df = crew_duration_df.explode('crew')
     return crew_duration_df
 
 
@@ -59,7 +63,6 @@ def main(args):
     print(f'Saving data to CSV file {output_filename}')
     df.to_csv(output_filename, index=False, encoding='utf-8')
 
-    # TODO DRY: duration-string-to-hours conversion is repeated again below
     subset = create_crew_duration_subset(df)
     duration2hours(subset)
     subset = subset.drop('duration', axis=1)
@@ -71,7 +74,6 @@ def main(args):
 
     df.sort_values('date', inplace=True)
 
-    # TODO DRY: Duplicate of the hours-conversion logic above - violates DRY
     duration2hours(df)
     df['cumulative_time'] = df['duration_hours'].cumsum()
 
