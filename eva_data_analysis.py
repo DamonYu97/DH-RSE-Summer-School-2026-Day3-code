@@ -2,29 +2,26 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import re
 
-# TODO Naming: 'f' is not descriptive
 # TODO Inputs: this should be a command-line argument, not hardcoded
-f = 'eva_data.json'
-# TODO Naming: 'o' is not descriptive
+input_filename = 'eva_data.json'
 # TODO Inputs: this should be a command-line argument, not hardcoded
-o = 'eva_data.csv'
+output_filename = 'eva_data.csv'
 
 # TODO: Unused variable - candidate for removal
 fieldnames = ("EVA number", "Country", "Crew", "Vehicle", "Date", "Duration", "Purpose")
 
 print("--START--")
 
-print(f'Reading JSON data file {f}')
-# TODO Naming: 'd' is not descriptive
-d = pd.read_json(f, convert_dates=['date'], encoding='ascii')
-d['eva'] = d['eva'].astype(float)
-d.dropna(axis=0, subset=['duration', 'date'], inplace=True)  # drop rows where either duration or date is null
+print(f'Reading JSON data file {input_filename}')
+df = pd.read_json(input_filename, convert_dates=['date'], encoding='ascii')
+df['eva'] = df['eva'].astype(float)
+df.dropna(axis=0, subset=['duration', 'date'], inplace=True)  # drop rows where either duration or date is null
 
-print(f'Saving data to CSV file {o}')
-d.to_csv(o, index=False, encoding='utf-8')
+print(f'Saving data to CSV file {output_filename}')
+df.to_csv(output_filename, index=False, encoding='utf-8')
 
 # TODO Descriptive comment: add an explanation of that the 3 lines below do
-subset = d.loc[:, ['crew', 'duration']] # subset of data with only columns crew and duration
+subset = df.loc[:, ['crew', 'duration']] # subset of data with only columns crew and duration
 subset.crew = subset.crew.str.split(';').apply(lambda x: [i for i in x if i.strip()]) # anonymous function that takes a list of crew members and returns a list with whitespace stripped from names and empry stirngs removed
 subset = subset.explode('crew') # expand entries in a list-like column across multiple rows, making each element in the list a separate row and keeping/replicating values in other columns
 
@@ -32,10 +29,9 @@ subset = subset.explode('crew') # expand entries in a list-like column across mu
 # for the main dataframe - it should be a single reusable function
 hrs = []
 # Create a list of decimal values for duration in hours
-for val in subset['duration']:
-    # TODO Naming: 'val', 'h', 'm' could have more descriptive names
-    h, m = val.split(":")
-    hrs.append(int(h) + int(m) / 60)
+for duration in subset['duration']:
+    hr, minute = duration.split(":")
+    hrs.append(int(hr) + int(minute) / 60)
 subset['duration_hours'] = hrs
 subset = subset.drop('duration', axis=1)
 subset = subset.groupby('crew').sum()
@@ -45,27 +41,26 @@ dur_out = 'duration_by_astronaut.csv'
 print(f'Saving to CSV file {dur_out}')
 subset.to_csv(dur_out, index=True, encoding='utf-8')
 
-d.sort_values('date', inplace=True)
+df.sort_values('date', inplace=True)
 
 # TODO DRY: Duplicate of the hours-conversion logic above - violates DRY
 hrs2 = []
-for val in d['duration']:
-    h, m = val.split(":")
-    hrs2.append(int(h) + int(m) / 60)
-d['duration_hours'] = hrs2
+for duration in df['duration']:
+    hr, minute = duration.split(":")
+    hrs2.append(int(hr) + int(minute) / 60)
+df['duration_hours'] = hrs2
 
-d['cumulative_time'] = d['duration_hours'].cumsum()
+df['cumulative_time'] = df['duration_hours'].cumsum()
 
 
-# TODO Naming: 'g' is not descriptive
 # TODO Inputs: graph save location should be a command-line argument, not hardcoded
-g = 'cumulative_eva_graph.png'
-print(f'Plotting cumulative spacewalk duration and saving to {g}')
-plt.plot(d['date'], d['cumulative_time'], 'ko-')
+graph_output_filename = 'cumulative_eva_graph.png'
+print(f'Plotting cumulative spacewalk duration and saving to {graph_output_filename}')
+plt.plot(df['date'], df['cumulative_time'], 'ko-')
 plt.xlabel('Year')
 plt.ylabel('Total time spent in space to date (hours)')
 plt.tight_layout()
-plt.savefig(g)
+plt.savefig(graph_output_filename)
 plt.show()
 
 
