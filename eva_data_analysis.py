@@ -7,9 +7,6 @@ input_filename = 'eva_data.json'
 # TODO Inputs: this should be a command-line argument, not hardcoded
 output_filename = 'eva_data.csv'
 
-# TODO: Unused variable - candidate for removal
-fieldnames = ("EVA number", "Country", "Crew", "Vehicle", "Date", "Duration", "Purpose")
-
 print("--START--")
 
 print(f'Reading JSON data file {input_filename}')
@@ -62,14 +59,5 @@ plt.ylabel('Total time spent in space to date (hours)')
 plt.tight_layout()
 plt.savefig(graph_output_filename)
 plt.show()
-
-
-# TODO: Unused function - candidate for removal
-# or for wiring into the analysis (left as unused/dead code on purpose)
-def calculate_crew_size(crew):
-    if crew.split() == []:
-        return None
-    else:
-        return len(re.split(r';', crew)) - 1
 
 print("--END--")
