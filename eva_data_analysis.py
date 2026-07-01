@@ -1,3 +1,5 @@
+import argparse
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -45,11 +47,9 @@ def plot_graph(df: pd.DataFrame, graph_output_filename: str):
     plt.show()
 
 
-def main():
-    # TODO Inputs: this should be a command-line argument, not hardcoded
-    input_filename = 'eva_data.json'
-    # TODO Inputs: this should be a command-line argument, not hardcoded
-    output_filename = 'eva_data.csv'
+def main(args):
+    input_filename = args.input_filename
+    output_filename = args.output_filename
 
     print("--START--")
 
@@ -65,8 +65,7 @@ def main():
     subset = subset.drop('duration', axis=1)
     subset = subset.groupby('crew').sum()
 
-    # TODO Inputs: this should be a command-line argument, not hardcoded
-    dur_out = 'duration_by_astronaut.csv'
+    dur_out = args.crew_duration_filename
     print(f'Saving to CSV file {dur_out}')
     subset.to_csv(dur_out, index=True, encoding='utf-8')
 
@@ -76,11 +75,18 @@ def main():
     duration2hours(df)
     df['cumulative_time'] = df['duration_hours'].cumsum()
 
-    # TODO Inputs: graph save location should be a command-line argument, not hardcoded
-    graph_output_filename = 'cumulative_eva_graph.png'
+    graph_output_filename = args.graph_output_filename
     plot_graph(df, graph_output_filename)
 
     print("--END--")
 
 if __name__ == '__main__':
-    main()
+    # parse cli arguments
+    args = argparse.ArgumentParser()
+    args.add_argument('-i', '--input_filename', required=True)
+    args.add_argument('-o', '--output_filename', required=True)
+    args.add_argument('-cd', '--crew_duration_filename', required=True)
+    args.add_argument('-g', '--graph_output_filename', required=True)
+    args = args.parse_args()
+    # main process
+    main(args)
